@@ -8,19 +8,18 @@ const envs = [
   'DISCORD_TOKEN',
   'DISCORD_GUILD_ID',
   'DISCORD_SOURCE_CHANNEL_ID',
-  'GOOGLE_CLIENT_EMAIL',
-  'GOOGLE_PRIVATE_KEY'
+  'GOOGLE_APPLICATION_CREDENTIALS'
 ];
 
 let lacksEnv = false;
-for(const envName of envs) {
-  if(!process.env[envName]) {
+for (const envName of envs) {
+  if (!process.env[envName]) {
     lacksEnv = true;
     console.error(`env variable not found: ${envName}`);
   }
 }
 
-if(lacksEnv) {
+if (lacksEnv) {
   process.exit(1);
 }
 
@@ -28,15 +27,13 @@ const {
   DISCORD_TOKEN,
   DISCORD_GUILD_ID,
   DISCORD_SOURCE_CHANNEL_ID,
-  GOOGLE_CLIENT_EMAIL,
-  GOOGLE_PRIVATE_KEY
 } = process.env;
 
 // テキスト → ReadableStream
 // Cloud Text-to-Speech APIを使用
 async function textToSpeechReadableStream(text) {
   const request = {
-    input: {text},
+    input: { text },
     voice: {
       languageCode: 'ja-JP',
       name: 'ja-JP-Wavenet-A'
@@ -48,18 +45,13 @@ async function textToSpeechReadableStream(text) {
   };
 
   const [response] = await client.synthesizeSpeech(request);
-  const stream = new Readable({ read() {} });
+  const stream = new Readable({ read() { } });
   stream.push(response.audioContent);
 
   return stream;
 }
 
-const client = new textToSpeech.TextToSpeechClient({
-  credentials: {
-    client_email: GOOGLE_CLIENT_EMAIL,
-    private_key: GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n')
-  }
-});
+const client = new textToSpeech.TextToSpeechClient();
 
 (async function main() {
   const discordClient = new Discord.Client({
@@ -70,7 +62,7 @@ const client = new textToSpeech.TextToSpeechClient({
   // ヘルムホルツだけになったらチャンネルから落ちる
   discordClient.on('voiceStateUpdate', (oldState, newState) => {
     const conn = discordClient.voice.connections.get(DISCORD_GUILD_ID);
-    if(conn && conn.channel && conn.channel.members.array().length < 2) {
+    if (conn && conn.channel && conn.channel.members.array().length < 2) {
       conn.disconnect();
     }
   });
@@ -82,24 +74,24 @@ const client = new textToSpeech.TextToSpeechClient({
     const channel = message.member.voice.channel;
 
     // ミュートの人の特定テキストチャンネルの発言だけ拾う
-    if(
-      !message.member.voice.selfMute || guild.id !== DISCORD_GUILD_ID || 
+    if (
+      !message.member.voice.selfMute || guild.id !== DISCORD_GUILD_ID ||
       !channel || message.channel.id !== DISCORD_SOURCE_CHANNEL_ID
     ) {
       return;
     }
 
     const text = message
-        .content
-        .replace(/https?:\/\/\S+/g, '')
-        .replace(/<a?:.*?:\d+>/g, '')   // カスタム絵文字を除去
-        .slice(0, 50);
+      .content
+      .replace(/https?:\/\/\S+/g, '')
+      .replace(/<a?:.*?:\d+>/g, '')   // カスタム絵文字を除去
+      .slice(0, 50);
 
     // テキストが空なら何もしない
-    if(!text) { return; }
+    if (!text) { return; }
 
     // 誰もいなかったら参加しない
-    if(channel.members.array().length < 1) { return; }
+    if (channel.members.array().length < 1) { return; }
 
     // 発言者の参加チャンネルが、
     // 今のヘルムホルツ参加チャンネルと違うなら移動する
@@ -107,7 +99,7 @@ const client = new textToSpeech.TextToSpeechClient({
     const shouldMove = !currentConnection || currentConnection.channel.id !== channel.id;
     const conn = shouldMove ? await channel.join() : currentConnection;
 
-    conn.play(await textToSpeechReadableStream(text), {highWaterMark: 6, bitrate: 'auto'});
+    conn.play(await textToSpeechReadableStream(text), { highWaterMark: 6, bitrate: 'auto' });
   });
 
   discordClient.once('ready', () => {
