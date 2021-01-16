@@ -164,6 +164,6 @@ $RECYCLE.BIN/
 *.lnk
 
 /.vscode
-/sa-key.json
+/.keys
 
 # End of https://www.gitignore.io/api/node,linux,macos,windows
