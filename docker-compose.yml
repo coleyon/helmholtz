@@ -4,9 +4,12 @@ services:
     restart: always
     build: .
     environment: 
-      DISCORD_BOT_TOKEN: "discord_bot_token"
+      DISCORD_TOKEN: "discord_bot_token"
       DISCORD_GUILD_ID: "discord_guild_id"
       DISCORD_SOURCE_CHANNEL_ID: "discord_channel_id"
       GOOGLE_APPLICATION_CREDENTIALS: "sa-key.json"
-    volumes:
-      - .:/helmholtz:rw
+    configs:
+      - gcp-sa-key
+configs:
+  gcp-sa-key:
+    file: ./sa-key.json
