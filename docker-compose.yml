@@ -1,0 +1,13 @@
+version: "3"
+services:
+  discord-helmholtz:
+    restart: always
+    build: .
+    environment: 
+      DISCORD_BOT_TOKEN: "discord_bot_token"
+      DISCORD_GUILD_ID: "discord_guild_id"
+      DISCORD_SOURCE_CHANNEL_ID: "discord_channel_id"
+      GOOGLE_CLIENT_EMAIL: "gcp_api_sa_email"
+      GOOGLE_PRIVATE_KEY: "gcp_api_sa_key"
+    volumes:
+      - .:/helmholtz:rw
